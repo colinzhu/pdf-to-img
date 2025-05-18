@@ -257,9 +257,44 @@
                         const container = document.createElement('div');
                         container.className = 'image-container';
                         
-                        // Add image to container
-                        img.style.maxWidth = '100%';
-                        img.style.height = 'auto';
+                        // Create resolution info
+                        const resolutionInfo = document.createElement('div');
+                        resolutionInfo.style.fontSize = '0.9em';
+                        resolutionInfo.style.color = '#555';
+                        resolutionInfo.style.marginBottom = '8px';
+                        resolutionInfo.textContent = `Resolution: ${resolution} DPI (${Math.round(canvas.width)} × ${Math.round(canvas.height)} pixels)`;
+                        
+                        // Create display mode toggle
+                        const displayMode = document.createElement('div');
+                        displayMode.style.marginBottom = '8px';
+                        
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.textContent = 'Switch to Fit View';
+                        toggleBtn.style.padding = '4px 8px';
+                        toggleBtn.style.fontSize = '0.8em';
+                        toggleBtn.style.backgroundColor = '#95a5a6';
+                        
+                        // Add click handler for toggle
+                        let isFitView = false;
+                        toggleBtn.addEventListener('click', () => {
+                            isFitView = !isFitView;
+                            if (isFitView) {
+                                img.style.maxWidth = '100%';
+                                img.style.height = 'auto';
+                                toggleBtn.textContent = 'Switch to 100% View';
+                            } else {
+                                img.style.maxWidth = 'none';
+                                img.style.height = 'auto';
+                                toggleBtn.textContent = 'Switch to Fit View';
+                            }
+                        });
+                        
+                        // Add toggle button to display mode container
+                        displayMode.appendChild(toggleBtn);
+                        
+                        // Add elements to container in correct order
+                        container.appendChild(displayMode);
+                        container.appendChild(resolutionInfo);
                         container.appendChild(img);
                         
                         // Add download links
@@ -278,8 +313,8 @@
                             pageLinks.appendChild(document.createTextNode(' | '));
                         }
                         
-                        // Add to container
-                        container.appendChild(pageLinks);
+                        // Add to container - now before the image
+                        container.insertBefore(pageLinks, resolutionInfo);
                         
                         // Add to preview
                         preview.appendChild(container);
