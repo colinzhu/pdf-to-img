@@ -337,7 +337,7 @@
                     // Add download all button
                     if (totalPages > 1) {
                         const downloadAllBtn = document.createElement('button');
-                        downloadAllBtn.style.marginTop = '20px';
+                        downloadAllBtn.style.marginBottom = '20px';
                         downloadAllBtn.textContent = `Download All Pages as ${format.toUpperCase()}`;
                         downloadAllBtn.onclick = () => {
                             // Create zip file
@@ -360,8 +360,8 @@
                                 });
                         };
                         
-                        // Add download all button to preview
-                        preview.appendChild(downloadAllBtn);
+                        // Add download all button to preview at the top
+                        preview.insertBefore(downloadAllBtn, preview.firstChild);
                     }
                 } catch (error) {
                     console.error('Error converting PDF:', error);
