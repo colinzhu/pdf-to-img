@@ -247,12 +247,19 @@
 
                         // Convert canvas to image
                         const img = new Image();
+                        let imageDataUrl;
                         if (format === 'png') {
-                            img.src = canvas.toDataURL('image/png');
+                            imageDataUrl = canvas.toDataURL('image/png');
+                            img.src = imageDataUrl;
                         } else {
-                            img.src = canvas.toDataURL('image/jpeg', 0.95);
+                            imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                            img.src = imageDataUrl;
                         }
                         
+                        // Calculate file size
+                        const byteString = atob(imageDataUrl.split(',')[1]);
+                        const fileSize = Math.round(byteString.length / 1024);
+
                         // Create container for image and links
                         const container = document.createElement('div');
                         container.className = 'image-container';
@@ -262,7 +269,7 @@
                         resolutionInfo.style.fontSize = '0.9em';
                         resolutionInfo.style.color = '#555';
                         resolutionInfo.style.marginBottom = '8px';
-                        resolutionInfo.textContent = `Resolution: ${resolution} DPI (${Math.round(canvas.width)} × ${Math.round(canvas.height)} pixels)`;
+                        resolutionInfo.textContent = `Resolution: ${resolution} DPI (${Math.round(canvas.width)} × ${Math.round(canvas.height)} pixels) - ${fileSize} KB`;
                         
                         // Create display mode toggle
                         const displayMode = document.createElement('div');
@@ -288,6 +295,13 @@
                                 toggleBtn.textContent = 'Switch to Fit View';
                             }
                         });
+                        
+                        // Set default view to Fit View
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        toggleBtn.textContent = 'Switch to 100% View';
+                        
+                        isFitView = true; // Default is Fit View
                         
                         // Add toggle button to display mode container
                         displayMode.appendChild(toggleBtn);
