@@ -322,11 +322,6 @@
                         link.textContent = `Download Page ${pageNum} as ${format.toUpperCase()}`;
                         pageLinks.appendChild(link);
                         
-                        // Add separator
-                        if (pageNum < totalPages) {
-                            pageLinks.appendChild(document.createTextNode(' | '));
-                        }
-                        
                         // Add to container - now before the image
                         container.insertBefore(pageLinks, resolutionInfo);
                         
