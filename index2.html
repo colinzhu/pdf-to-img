@@ -55,12 +55,16 @@
         .modal-content {
             transition: transform 0.3s ease-in-out;
         }
+        /* Ensure image containers can scroll (though not used by default now for image) */
+        .image-card-container {
+            overflow: auto;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-blue-500 selection:text-white">
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 min-h-screen flex flex-col items-center p-4 selection:bg-blue-500 selection:text-white">
 
-    <div class="bg-slate-800 shadow-2xl rounded-xl p-6 md:p-10 w-full max-w-3xl">
+    <div class="bg-slate-800 shadow-2xl rounded-xl p-6 md:p-10 w-full max-w-3xl mt-8 mb-8">
         <div class="text-center mb-8">
             <svg class="w-16 h-16 mx-auto mb-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
             <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">PDF to Image Converter</h1>
@@ -111,10 +115,10 @@
 
     </div>
 
-    <div id="preview" class="mt-8 w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div id="preview" class="mt-8 w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
         </div>
 
-    <div id="downloadAllContainer" class="mt-8 text-center hidden">
+    <div id="downloadAllContainer" class="mt-8 mb-8 text-center hidden">
          <button id="downloadAllBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-md shadow-md hover:shadow-lg transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center mx-auto">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0L8 8m4-4v12"></path></svg>
             Download All as ZIP
@@ -164,11 +168,6 @@
             let currentPdfFile = null;
 
             // --- Utility Functions ---
-            /**
-             * Shows a notification modal.
-             * @param {string} title - The title of the modal.
-             * @param {string} message - The message to display.
-             */
             function showNotification(title, message) {
                 modalTitle.textContent = title;
                 modalMessage.textContent = message;
@@ -177,45 +176,35 @@
                 notificationModal.querySelector('.modal-content').classList.add('scale-100');
             }
 
-            /**
-             * Hides the notification modal.
-             */
             function hideNotification() {
                 notificationModal.querySelector('.modal-content').classList.remove('scale-100');
                 notificationModal.querySelector('.modal-content').classList.add('scale-95');
                 notificationModal.classList.add('opacity-0', 'invisible');
             }
 
-            // Event listeners for modal
             closeModalBtn.addEventListener('click', hideNotification);
             modalOkBtn.addEventListener('click', hideNotification);
             notificationModal.addEventListener('click', (event) => {
-                if (event.target === notificationModal) { // Clicked on backdrop
+                if (event.target === notificationModal) {
                     hideNotification();
                 }
             });
 
-            // Check if PDF.js library is loaded
             if (typeof pdfjsLib === 'undefined') {
-                console.error("PDF.js library (pdfjsLib) is not loaded. Please check the script URL in the <head> or your network connection.");
-                showNotification("Critical Error", "PDF library (pdf.js) failed to load. The application cannot start. Please check your internet connection or browser console for errors. Try refreshing the page.");
-                if(convertBtn) convertBtn.disabled = true; // Disable convert button if library failed
-                return; // Stop further script execution
+                console.error("PDF.js library (pdfjsLib) is not loaded.");
+                showNotification("Critical Error", "PDF library (pdf.js) failed to load. Please check your internet connection or browser console.");
+                if(convertBtn) convertBtn.disabled = true;
+                return;
             } else {
-                // Configure PDF.js worker
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js';
             }
 
-
-            // --- Event Handlers ---
-            // Trigger hidden file input when the custom button is clicked
             if(pdfInputTrigger) {
                 pdfInputTrigger.addEventListener('click', () => {
                     if(pdfInput) pdfInput.click();
                 });
             }
 
-            // Handle file selection
             if(pdfInput) {
                 pdfInput.addEventListener('change', () => {
                     const file = pdfInput.files[0];
@@ -223,8 +212,8 @@
                         currentPdfFile = file;
                         if(fileNameDisplay) fileNameDisplay.textContent = file.name;
                         if(fileInfo) fileInfo.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB. Type: ${file.type}`;
-                        if(preview) preview.innerHTML = ''; // Clear previous previews
-                        if(downloadAllContainer) downloadAllContainer.classList.add('hidden'); // Hide download all button
+                        if(preview) preview.innerHTML = '';
+                        if(downloadAllContainer) downloadAllContainer.classList.add('hidden');
                     } else {
                         currentPdfFile = null;
                         if(fileNameDisplay) fileNameDisplay.textContent = 'Choose a PDF file...';
@@ -233,7 +222,6 @@
                 });
             }
 
-            // Handle convert button click
             if(convertBtn) {
                 convertBtn.addEventListener('click', async () => {
                     if (!currentPdfFile) {
@@ -241,34 +229,37 @@
                         return;
                     }
 
-                    // UI updates for processing
                     convertBtn.disabled = true;
                     if(convertSpinner) convertSpinner.classList.remove('hidden');
                     if(convertBtn.querySelector('span')) convertBtn.querySelector('span').textContent = 'Converting...';
-                    
-                    if(preview) preview.innerHTML = ''; // Clear previous output
+
+                    if(preview) preview.innerHTML = '';
                     if(progressBarContainer) progressBarContainer.classList.remove('hidden');
                     if(progressText) progressText.classList.remove('hidden');
                     if(progressBarFill) progressBarFill.style.width = '0%';
                     if(progressText) progressText.textContent = 'Initializing...';
                     if(downloadAllContainer) downloadAllContainer.classList.add('hidden');
 
-
                     const fileReader = new FileReader();
-                    
+
                     fileReader.onload = async (e) => {
                         try {
                             const typedarray = new Uint8Array(e.target.result);
                             const resolution = parseInt(resolutionSelect.value);
                             const format = formatSelect.value;
-                            const quality = format === 'jpeg' ? 0.92 : 1.0; // JPEG quality, PNG is lossless
-                            const scale = resolution / 72; // 72 DPI is the default PDF internal resolution
+                            const quality = format === 'jpeg' ? 0.92 : 1.0;
+                            const scale = resolution / 72;
 
                             const pdfDoc = await pdfjsLib.getDocument({ data: typedarray }).promise;
                             const totalPages = pdfDoc.numPages;
 
                             if (totalPages === 0) {
                                 showNotification('Empty PDF', 'The selected PDF file has no pages.');
+                                if(convertBtn) convertBtn.disabled = false;
+                                if(convertSpinner) convertSpinner.classList.add('hidden');
+                                if(convertBtn && convertBtn.querySelector('span')) convertBtn.querySelector('span').textContent = 'Convert PDF to Images';
+                                if(progressBarContainer) progressBarContainer.classList.add('hidden');
+                                if(progressText) progressText.classList.add('hidden');
                                 return;
                             }
 
@@ -279,7 +270,7 @@
 
                                 const page = await pdfDoc.getPage(pageNum);
                                 const viewport = page.getViewport({ scale: scale });
-                                
+
                                 const canvas = document.createElement('canvas');
                                 const context = canvas.getContext('2d');
                                 canvas.height = viewport.height;
@@ -291,30 +282,90 @@
                                 }).promise;
 
                                 const imageDataUrl = canvas.toDataURL(`image/${format}`, quality);
-                                
-                                // Create image container
-                                const imgContainer = document.createElement('div');
-                                imgContainer.className = 'bg-slate-700 p-4 rounded-lg shadow-lg flex flex-col items-center transform transition-all hover:scale-105 duration-300';
-                                
+
+                                const base64Data = imageDataUrl.split(',')[1];
+                                const byteString = atob(base64Data);
+                                const fileSizeKB = (byteString.length / 1024).toFixed(2);
+
+                                const imgCard = document.createElement('div');
+                                imgCard.className = 'image-card-container bg-slate-700 p-4 rounded-lg shadow-lg flex flex-col items-center transform transition-all hover:scale-105 duration-300';
+
                                 const imgElement = new Image();
                                 imgElement.src = imageDataUrl;
                                 imgElement.alt = `Page ${pageNum} - ${resolution} DPI`;
-                                imgElement.className = 'rounded-md mb-3 max-w-full h-auto border-2 border-slate-600';
-                                
+                                imgElement.className = 'rounded-md mb-3 max-w-full h-auto border-2 border-slate-600'; // Image will always fit container
+
                                 const pageInfo = document.createElement('p');
                                 pageInfo.className = 'text-xs text-slate-400 mb-1';
                                 pageInfo.textContent = `Page ${pageNum} (${Math.round(canvas.width)}x${Math.round(canvas.height)}px)`;
+
+                                const fileSizeInfo = document.createElement('p');
+                                fileSizeInfo.className = 'text-xs text-slate-400 mb-2';
+                                fileSizeInfo.textContent = `Size: ${fileSizeKB} KB`;
+
+                                // --- MODIFIED BUTTON BEHAVIOR ---
+                                const showInNewTabBtn = document.createElement('button');
+                                showInNewTabBtn.className = 'my-1 w-full text-center bg-slate-600 hover:bg-slate-500 text-white text-xs font-medium py-1.5 px-2 rounded-md transition duration-150 ease-in-out';
+                                showInNewTabBtn.textContent = 'Show Full Image in New Tab';
+
+                                showInNewTabBtn.addEventListener('click', () => {
+                                    const imageSrc = imgElement.src; // This is the data URL
+                                    const newTab = window.open();
+                                    if (newTab) {
+                                        newTab.document.open();
+                                        newTab.document.write(`
+                                            <!DOCTYPE html>
+                                            <html lang="en">
+                                            <head>
+                                                <meta charset="UTF-8">
+                                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                                <title>Page ${pageNum} - ${resolution} DPI - Image Preview</title>
+                                                <style>
+                                                    body {
+                                                        margin: 0;
+                                                        background-color: #2d3748; /* A dark slate like bg-slate-800 */
+                                                        display: flex;
+                                                        justify-content: center; /* Horizontal centering */
+                                                        align-items: center; /* Vertical centering */
+                                                        min-height: 100vh; /* Full viewport height */
+                                                        padding: 10px;
+                                                        box-sizing: border-box;
+                                                    }
+                                                    img {
+                                                        max-width: 100%;
+                                                        max-height: calc(100vh - 20px); /* Account for padding */
+                                                        display: block;
+                                                        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+                                                    }
+                                                </style>
+                                            </head>
+                                            <body>
+                                                <img src="${imageSrc}" alt="Page ${pageNum} of PDF">
+                                            </body>
+                                            </html>
+                                        `);
+                                        newTab.document.close();
+                                        if (currentPdfFile) {
+                                           newTab.document.title = `Page ${pageNum} - ${resolution} DPI - ${currentPdfFile.name.replace(/\.pdf$/i, '')}`;
+                                        }
+                                    } else {
+                                        showNotification('Pop-up Blocked', 'Could not open image in a new tab. Please allow pop-ups for this site.');
+                                    }
+                                });
+                                // --- END OF MODIFIED BUTTON BEHAVIOR ---
 
                                 const downloadLink = document.createElement('a');
                                 downloadLink.href = imageDataUrl;
                                 downloadLink.download = `page-${pageNum}_${resolution}dpi.${format}`;
                                 downloadLink.className = 'mt-2 w-full text-center bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition duration-150 ease-in-out';
                                 downloadLink.textContent = `Download ${format.toUpperCase()}`;
-                                
-                                imgContainer.appendChild(imgElement);
-                                imgContainer.appendChild(pageInfo);
-                                imgContainer.appendChild(downloadLink);
-                                if(preview) preview.appendChild(imgContainer);
+
+                                imgCard.appendChild(imgElement);
+                                imgCard.appendChild(pageInfo);
+                                imgCard.appendChild(fileSizeInfo);
+                                imgCard.appendChild(showInNewTabBtn); // Add the new button
+                                imgCard.appendChild(downloadLink);
+                                if(preview) preview.appendChild(imgCard);
                             }
 
                             if (totalPages > 0) {
@@ -328,7 +379,6 @@
                             console.error('Error converting PDF:', error);
                             showNotification('Conversion Error', 'An error occurred: ' + (error.message || error) + '. Check console for details.');
                         } finally {
-                            // Reset UI
                             if(convertBtn) convertBtn.disabled = false;
                             if(convertSpinner) convertSpinner.classList.add('hidden');
                             if(convertBtn && convertBtn.querySelector('span')) convertBtn.querySelector('span').textContent = 'Convert PDF to Images';
@@ -336,7 +386,7 @@
                             if(progressText) progressText.classList.add('hidden');
                         }
                     };
-                    
+
                     fileReader.onerror = () => {
                         showNotification('File Read Error', 'Could not read the selected file.');
                         if(convertBtn) convertBtn.disabled = false;
@@ -347,13 +397,23 @@
                 });
             }
 
-            // Handle Download All button click
             if(downloadAllBtn) {
                 downloadAllBtn.addEventListener('click', () => {
                     if(!preview) return;
                     const images = preview.querySelectorAll('img');
                     if (images.length === 0) {
                         showNotification('No Images', 'No images to download.');
+                        return;
+                    }
+
+                    if (typeof JSZip === 'undefined') {
+                        showNotification('Error', 'JSZip library is not loaded. Cannot create ZIP file.');
+                        console.error('JSZip not loaded.');
+                        return;
+                    }
+                    if (typeof saveAs === 'undefined') {
+                        showNotification('Error', 'FileSaver.js library is not loaded. Cannot download ZIP file.');
+                        console.error('FileSaver.js not loaded.');
                         return;
                     }
 
